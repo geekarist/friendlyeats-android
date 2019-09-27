@@ -162,8 +162,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void onAddItemsClicked() {
-        // TODO(developer): Add random restaurants
-        showTodoToast();
+        mViewModel.onAddItemsClicked(this);
     }
 
     @Override
@@ -203,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
-            mViewModel.setIsSigningIn(false);
+            mViewModel.setSigningIn(false);
 
             if (resultCode != RESULT_OK && shouldStartSignIn()) {
                 startSignIn();
@@ -243,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private boolean shouldStartSignIn() {
-        return (!mViewModel.getIsSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null);
+        return (!mViewModel.isSigningIn() && FirebaseAuth.getInstance().getCurrentUser() == null);
     }
 
     private void startSignIn() {
@@ -255,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements
                 .build();
 
         startActivityForResult(intent, RC_SIGN_IN);
-        mViewModel.setIsSigningIn(true);
+        mViewModel.setSigningIn(true);
     }
 
     private void showTodoToast() {
