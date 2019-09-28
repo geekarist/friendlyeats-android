@@ -31,14 +31,17 @@ import java.util.*
  * See the adapter classes in FirebaseUI (https://github.com/firebase/FirebaseUI-Android/tree/master/firestore) for a
  * more efficient implementation of a Firestore RecyclerView Adapter.
  */
-abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var mQuery: Query?) :
+abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var query: Query?) :
     RecyclerView.Adapter<VH>(), EventListener<QuerySnapshot> {
     private var mRegistration: ListenerRegistration? = null
 
-    private val mSnapshots = ArrayList<DocumentSnapshot>()
+    private val snapshots = ArrayList<DocumentSnapshot>()
 
     fun startListening() {
-        // TODO(developer): Implement
+        val q = query
+        if (q != null && mRegistration == null) {
+            mRegistration = q.addSnapshotListener(this)
+        }
     }
 
     override fun onEvent(snapshot: QuerySnapshot?, exception: FirebaseFirestoreException?) {
@@ -50,14 +53,35 @@ abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var mQuery
         snapshot?.let {
             for (change in it.documentChanges) {
                 when (change.type) {
-                    DocumentChange.Type.ADDED -> TODO()
-                    DocumentChange.Type.MODIFIED -> TODO()
-                    DocumentChange.Type.REMOVED -> TODO()
+                    DocumentChange.Type.ADDED -> onDocumentAdded(change)
+                    DocumentChange.Type.MODIFIED -> onDocumentModified(change)
+                    DocumentChange.Type.REMOVED -> onDocumentRemoved(change)
                 }
             }
 
             onDataChanged()
         }
+    }
+
+    private fun onDocumentAdded(change: DocumentChange) {
+        snapshots.add(change.newIndex, change.document)
+        notifyItemInserted(change.newIndex)
+    }
+
+    private fun onDocumentModified(change: DocumentChange) {
+        if (change.oldIndex == change.newIndex) {
+            snapshots.set(change.oldIndex, change.document)
+            notifyItemChanged(change.oldIndex)
+        } else {
+            snapshots.removeAt(change.oldIndex)
+            snapshots.add(change.newIndex, change.document)
+            notifyItemMoved(change.oldIndex, change.newIndex)
+        }
+    }
+
+    private fun onDocumentRemoved(change: DocumentChange) {
+        snapshots.removeAt(change.oldIndex)
+        notifyItemRemoved(change.oldIndex)
     }
 
     fun stopListening() {
@@ -66,7 +90,7 @@ abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var mQuery
             mRegistration = null
         }
 
-        mSnapshots.clear()
+        snapshots.clear()
         notifyDataSetChanged()
     }
 
@@ -75,20 +99,20 @@ abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var mQuery
         stopListening()
 
         // Clear existing data
-        mSnapshots.clear()
+        snapshots.clear()
         notifyDataSetChanged()
 
         // Listen to new query
-        mQuery = query
+        this.query = query
         startListening()
     }
 
     override fun getItemCount(): Int {
-        return mSnapshots.size
+        return snapshots.size
     }
 
     protected fun getSnapshot(index: Int): DocumentSnapshot {
-        return mSnapshots[index]
+        return snapshots[index]
     }
 
     protected open fun onError(e: FirebaseFirestoreException) {}

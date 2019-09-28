@@ -40,7 +40,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 
-class MainActivity : AppCompatActivity(), View.OnClickListener, FilterDialogFragment.FilterListener, RestaurantAdapter.OnRestaurantSelectedListener {
+class MainActivity :
+    AppCompatActivity(), View.OnClickListener, FilterDialogFragment.FilterListener,
+    RestaurantAdapter.OnRestaurantSelectedListener {
 
     private var mToolbar: Toolbar? = null
     private var mCurrentSearchView: TextView? = null
@@ -89,13 +91,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, FilterDialogFrag
         firestore = FirebaseFirestore.getInstance()
 
         mQuery = firestore.collection("restaurants")
-                .orderBy("avgRating", Query.Direction.DESCENDING)
-                .limit(LIMIT.toLong())
+            .orderBy("avgRating", Query.Direction.DESCENDING)
+            .limit(LIMIT.toLong())
     }
 
     private fun initRecyclerView() {
 
-        mAdapter = object : RestaurantAdapter(mQuery, this) {
+        mAdapter = object : RestaurantAdapter(mQuery, this@MainActivity) {
 
             override fun onDataChanged() {
                 // Show/hide content if the query returns empty.
@@ -110,8 +112,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, FilterDialogFrag
 
             override fun onError(e: FirebaseFirestoreException) {
                 // Show a snackbar on errors
-                Snackbar.make(findViewById(android.R.id.content),
-                        "Error: check logs for info.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(
+                    findViewById(android.R.id.content),
+                    "Error: check logs for info.", Snackbar.LENGTH_LONG
+                ).show()
             }
         }
 
@@ -220,9 +224,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, FilterDialogFrag
     private fun startSignIn() {
         // Sign in with FirebaseUI
         val intent = AuthUI.getInstance().createSignInIntentBuilder()
-                .setAvailableProviders(listOf(AuthUI.IdpConfig.EmailBuilder().build()))
-                .setIsSmartLockEnabled(false)
-                .build()
+            .setAvailableProviders(listOf(AuthUI.IdpConfig.EmailBuilder().build()))
+            .setIsSmartLockEnabled(false)
+            .build()
 
         startActivityForResult(intent, RC_SIGN_IN)
         mViewModel!!.isSigningIn = true
