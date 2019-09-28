@@ -154,18 +154,13 @@ class MainActivity :
 
     override fun onFilter(filters: Filters) {
 
-        query = firestore.collection("restaurants").let {
-            if (filters.hasCategory()) it.whereEqualTo("category", filters.category) else it
-        }.let {
-            if (filters.hasCity()) it.whereEqualTo("city", filters.city) else it
-        }.let {
-            if (filters.hasPrice()) it.whereEqualTo("price", filters.price) else it
-        }.let {
-            if (filters.hasSortBy()) it.whereEqualTo("sortBy", filters.sortBy) else it
-        }.let {
-            if (filters.hasSortBy()) it.orderBy(filters.sortBy, filters.sortDirection) else it
-        }.limit(LIMIT.toLong())
+        var query: Query = firestore.collection("restaurants")
+        if (filters.hasCategory()) query = query.whereEqualTo("category", filters.category)
+        if (filters.hasCity()) query = query.whereEqualTo("city", filters.city)
+        if (filters.hasPrice()) query = query.whereEqualTo("price", filters.price)
+        if (filters.hasSortBy()) query = query.orderBy(filters.sortBy, filters.sortDirection)
 
+        this.query = query
         adapter?.setQuery(query)
 
         // Set header
