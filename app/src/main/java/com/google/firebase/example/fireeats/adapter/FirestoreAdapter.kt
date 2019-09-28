@@ -15,11 +15,10 @@
  */
 package com.google.firebase.example.fireeats.adapter
 
+import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.*
+import com.google.firebase.firestore.EventListener
 import java.util.*
 
 /**
@@ -32,13 +31,33 @@ import java.util.*
  * See the adapter classes in FirebaseUI (https://github.com/firebase/FirebaseUI-Android/tree/master/firestore) for a
  * more efficient implementation of a Firestore RecyclerView Adapter.
  */
-abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var mQuery: Query?) : RecyclerView.Adapter<VH>() {
+abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var mQuery: Query?) :
+    RecyclerView.Adapter<VH>(), EventListener<QuerySnapshot> {
     private var mRegistration: ListenerRegistration? = null
 
     private val mSnapshots = ArrayList<DocumentSnapshot>()
 
     fun startListening() {
         // TODO(developer): Implement
+    }
+
+    override fun onEvent(snapshot: QuerySnapshot?, exception: FirebaseFirestoreException?) {
+        exception?.let {
+            Log.w(TAG, "onEvent error", exception)
+            return
+        }
+
+        snapshot?.let {
+            for (change in it.documentChanges) {
+                when (change.type) {
+                    DocumentChange.Type.ADDED -> TODO()
+                    DocumentChange.Type.MODIFIED -> TODO()
+                    DocumentChange.Type.REMOVED -> TODO()
+                }
+            }
+
+            onDataChanged()
+        }
     }
 
     fun stopListening() {
