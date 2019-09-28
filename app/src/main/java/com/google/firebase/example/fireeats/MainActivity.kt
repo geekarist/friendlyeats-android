@@ -51,10 +51,10 @@ class MainActivity :
     private var mEmptyView: ViewGroup? = null
 
     private lateinit var firestore: FirebaseFirestore
-    private lateinit var mQuery: Query
+    private lateinit var query: Query
 
     private var mFilterDialog: FilterDialogFragment? = null
-    private var mAdapter: RestaurantAdapter? = null
+    private var adapter: RestaurantAdapter? = null
 
     private var mViewModel: MainActivityViewModel? = null
 
@@ -90,14 +90,14 @@ class MainActivity :
     private fun initFirestore() {
         firestore = FirebaseFirestore.getInstance()
 
-        mQuery = firestore.collection("restaurants")
+        query = firestore.collection("restaurants")
             .orderBy("avgRating", Query.Direction.DESCENDING)
             .limit(LIMIT.toLong())
     }
 
     private fun initRecyclerView() {
 
-        mAdapter = object : RestaurantAdapter(mQuery, this@MainActivity) {
+        adapter = object : RestaurantAdapter(query, this@MainActivity) {
 
             override fun onDataChanged() {
                 // Show/hide content if the query returns empty.
@@ -120,7 +120,7 @@ class MainActivity :
         }
 
         mRestaurantsRecycler!!.layoutManager = LinearLayoutManager(this)
-        mRestaurantsRecycler!!.adapter = mAdapter
+        mRestaurantsRecycler!!.adapter = adapter
     }
 
     public override fun onStart() {
@@ -136,15 +136,15 @@ class MainActivity :
         onFilter(mViewModel!!.filters!!)
 
         // Start listening for Firestore updates
-        if (mAdapter != null) {
-            mAdapter!!.startListening()
+        if (adapter != null) {
+            adapter!!.startListening()
         }
     }
 
     public override fun onStop() {
         super.onStop()
-        if (mAdapter != null) {
-            mAdapter!!.stopListening()
+        if (adapter != null) {
+            adapter!!.stopListening()
         }
     }
 
@@ -153,8 +153,20 @@ class MainActivity :
     }
 
     override fun onFilter(filters: Filters) {
-        // TODO(developer): Construct new query
-        showTodoToast()
+
+        query = firestore.collection("restaurants").let {
+            if (filters.hasCategory()) it.whereEqualTo("category", filters.category) else it
+        }.let {
+            if (filters.hasCity()) it.whereEqualTo("city", filters.city) else it
+        }.let {
+            if (filters.hasPrice()) it.whereEqualTo("price", filters.price) else it
+        }.let {
+            if (filters.hasSortBy()) it.whereEqualTo("sortBy", filters.sortBy) else it
+        }.let {
+            if (filters.hasSortBy()) it.orderBy(filters.sortBy, filters.sortDirection) else it
+        }.limit(LIMIT.toLong())
+
+        adapter?.setQuery(query)
 
         // Set header
         mCurrentSearchView!!.text = Html.fromHtml(filters.getSearchDescription(this))
