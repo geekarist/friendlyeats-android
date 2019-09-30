@@ -46,7 +46,7 @@ abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var query:
 
     override fun onEvent(snapshot: QuerySnapshot?, exception: FirebaseFirestoreException?) {
         exception?.let {
-            Log.w(TAG, "onEvent error", exception)
+            Log.w(TAG, "onEvent error", Exception(exception))
             return
         }
 
