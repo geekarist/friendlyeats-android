@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+
+	function unchanged(key) {
+  	return (key in resource.data)
+    	&& (key in request.resource.data)
+      && (resource.data[key] == request.resource.data[key])
+  }
+
+  match /databases/{database}/documents {
+  	match /restaurants/{restaurantId} {
+    	allow read, create: if request.auth != null;
+      allow update: if request.auth != null
+      							&& (request.resource.data.keys() == resource.data.keys())
+                    && unchanged(name);
+      allow delete: if false;
+      match /ratings/{ratingId} {
+      	allow read: if request.auth != null;
+        allow create: if request.auth != null
+        							&& request.resource.data.userId == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+  }
+}
