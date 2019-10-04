@@ -3,8 +3,8 @@ service cloud.firestore {
 
 	function unchanged(key) {
   	return (key in resource.data)
-    	&& (key in request.resource.data)
-      && (resource.data[key] == request.resource.data[key])
+      && (key in request.resource.data)
+      && (resource.data[key] == request.resource.data[key]);
   }
 
   match /databases/{database}/documents {
